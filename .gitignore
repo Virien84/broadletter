@@ -1,0 +1,27 @@
+# Google credentials and tokens: NEVER commit
+secrets/
+credentials*.json
+token*.json
+
+# Local config (may contain real sender addresses)
+config.toml
+
+# Personal planning notes and local agent instructions
+OpcionA.md
+OpcionB.md
+CLAUDE.md
+
+# Run data: logs, broadcast previews
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+
+# Tooling
+.playwright-mcp/

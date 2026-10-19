@@ -1,0 +1,27 @@
+# Copy this file to config.toml and adjust it. config.toml is git-ignored.
+
+[gmail]
+# Gmail label that marks the newsletters to process (create it with a Gmail filter).
+label = "Newsletter"
+# Label added to newsletters that were digested, right before they are moved to trash.
+processed_label = "Broadletter/Digested"
+# Senders whose emails go to "Letters to the Editor" instead of the broadcast.
+personal_senders = []
+# Maximum newsletters per run (guards against surprises and endless runs).
+max_messages = 30
+
+[ollama]
+host = "http://127.0.0.1:11434"
+chat_model = "gemma4:e4b-it-qat"
+embed_model = "embeddinggemma:300m"
+# Maximum characters of each newsletter passed to the model.
+max_chars = 12000
+# Layers offloaded to the GPU: leave unset to let Ollama decide; 0 = CPU only.
+# num_gpu = 0
+
+[digest]
+# Cosine similarity above which two news items are considered the same story.
+dedupe_threshold = 0.82
+hosts = ["Maya", "Leo"]
+title = "Broadletter"
+language = "English"
