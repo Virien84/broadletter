@@ -119,3 +119,7 @@ uv run pytest -q
 - Two-voice audio with an open-weight TTS model (Kokoro)
 - Optional Telegram delivery
 - Reading linked articles safely (domain allowlist, no unsubscribe links)
+
+## License
+
+[MIT](LICENSE)
