@@ -5,10 +5,17 @@
 label = "Newsletter"
 # Label added to newsletters that were digested, right before they are moved to trash.
 processed_label = "Broadletter/Digested"
+# Label added to expired newsletters, right before they are moved to trash.
+expired_label = "Broadletter/Expired"
 # Senders whose emails go to "Letters to the Editor" instead of the broadcast.
 personal_senders = []
 # Maximum newsletters per run (guards against surprises and endless runs).
 max_messages = 30
+# Newsletters this many days old or older are discarded unread: never downloaded,
+# never sent to the model, just labeled and moved to trash.
+max_age_days = 30
+# Maximum expired newsletters discarded per run.
+max_expired = 200
 
 [ollama]
 host = "http://127.0.0.1:11434"

@@ -69,15 +69,15 @@ class Gmail:
 
     # --- reading ---------------------------------------------------------------------
 
-    def list_message_ids(self, label_id: str, limit: int) -> list[str]:
+    def list_message_ids(self, label_id: str, limit: int, query: str | None = None) -> list[str]:
         ids: list[str] = []
         page_token = None
         while len(ids) < limit:
             resp = (
                 self._svc.users()
                 .messages()
-                .list(userId="me", labelIds=[label_id], maxResults=min(100, limit - len(ids)),
-                      pageToken=page_token)
+                .list(userId="me", labelIds=[label_id], q=query,
+                      maxResults=min(100, limit - len(ids)), pageToken=page_token)
                 .execute()
             )
             ids += [m["id"] for m in resp.get("messages", [])]
@@ -135,6 +135,13 @@ class Gmail:
     def trash(self, message_id: str) -> None:
         """Trash, never permanent deletion: recoverable for 30 days."""
         self._svc.users().messages().trash(userId="me", id=message_id).execute()
+
+
+def age_queries(max_age_days: int) -> tuple[str, str]:
+    """Gmail search queries splitting messages into (fresh, expired) at max_age_days."""
+    if max_age_days < 1:
+        raise ValueError("max_age_days must be at least 1")
+    return f"newer_than:{max_age_days}d", f"older_than:{max_age_days}d"
 
 
 def iter_messages(gmail: Gmail, ids: list[str]) -> Iterator[tuple[str, EmailMessage]]:

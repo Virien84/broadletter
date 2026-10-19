@@ -18,8 +18,13 @@ TOKEN_PATH = SECRETS_DIR / "token.json"
 class GmailConfig:
     label: str = "Newsletter"
     processed_label: str = "Broadletter/Digested"
+    expired_label: str = "Broadletter/Expired"
     personal_senders: list[str] = field(default_factory=list)
     max_messages: int = 30
+    # Newsletters this many days old or older are discarded unread (never sent to the LLM).
+    max_age_days: int = 30
+    # Maximum expired newsletters discarded per run (cheap: they are never downloaded).
+    max_expired: int = 200
 
 
 @dataclass(frozen=True)
@@ -56,6 +61,8 @@ def load_config(path: Path | None = None) -> Config:
         digest=DigestConfig(**raw.get("digest", {})),
     )
     _check_local_only(config.ollama.host)
+    if config.gmail.max_age_days < 1:
+        raise ValueError("gmail.max_age_days must be at least 1")
     if len(config.digest.hosts) != 2:
         raise ValueError("digest.hosts must contain exactly two hosts")
     return config

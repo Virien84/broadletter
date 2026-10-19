@@ -43,6 +43,10 @@ Gmail label "Newsletter"
 Newsletters from senders you mark as personal skip the AI entirely. They are listed in a
 **"Letters to the Editor"** section instead.
 
+**Old news is no news.** Newsletters that are a month old or older (`max_age_days`,
+default 30) are discarded unread: they are never downloaded or sent to the model, just
+labeled `Broadletter/Expired` and moved to trash.
+
 ## Security by design
 
 - **The model has no tools.** It can only return JSON that matches a Pydantic schema. The
@@ -56,8 +60,8 @@ Newsletters from senders you mark as personal skip the AI entirely. They are lis
 - **There is no send function.** The broadcast reaches your inbox through
   `messages.insert`, which places the message without sending it.
 - **Nothing is permanently deleted.** Newsletters go to the trash, where they stay
-  recoverable for 30 days. Only the ones included in the broadcast are moved, and each move
-  is logged to `data/audit.jsonl`.
+  recoverable for 30 days. Only the ones included in the broadcast, plus expired ones, are
+  moved, and each move is logged with its reason to `data/audit.jsonl`.
 - **Dry run by default.** Nothing changes in Gmail unless you pass `--apply`.
 
 ## Requirements
@@ -103,8 +107,8 @@ uv run broadletter run --limit 5   # dry run: preview saved to data/, Gmail unto
 uv run broadletter run --apply     # insert the broadcast and trash the digested newsletters
 ```
 
-Settings live in `config.toml`: label names, personal senders, models, GPU layers
-(`num_gpu`), dedupe threshold, host names and output language.
+Settings live in `config.toml`: label names, personal senders, maximum newsletter age,
+models, GPU layers (`num_gpu`), dedupe threshold, host names and output language.
 
 ## Development
 
