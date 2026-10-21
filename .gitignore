@@ -1,6 +1,7 @@
 # Google credentials and tokens: NEVER commit
 secrets/
 credentials*.json
+client_secret*.json
 token*.json
 
 # Local config (may contain real sender addresses)
