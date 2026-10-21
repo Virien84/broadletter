@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import email
 import email.policy
+import logging
 from collections import Counter
 from collections.abc import Iterator
 from email.message import EmailMessage
@@ -40,6 +41,8 @@ def authorize(interactive: bool = False) -> Credentials:
                 "(OAuth client of type 'Desktop app')."
             )
         flow = InstalledAppFlow.from_client_secrets_file(str(CREDENTIALS_PATH), SCOPES)
+        # Its INFO log echoes the OAuth redirect, authorization code included.
+        logging.getLogger("google_auth_oauthlib.flow").setLevel(logging.WARNING)
         creds = flow.run_local_server(port=0, open_browser=True)
     else:
         raise RuntimeError("No valid token. Run first: broadletter auth")
