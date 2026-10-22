@@ -10,8 +10,8 @@ models.
 
 Built for the [Hacktoberfest Open-Source AI Challenge: Week 3 — "Slow and Steady"](https://dev.to/challenges/hacktoberfest-week3-2026-10-19).
 
-> **Status:** early MVP. The local AI pipeline works end to end on sample newsletters.
-> The Gmail integration is implemented, but it has not been tested yet against a real inbox.
+> **Status:** MVP, working end to end against a real Gmail inbox. On a GTX 1650 (4 GB),
+> five newsletters (32 stories) become one broadcast in about 11 minutes.
 
 ## Why
 
@@ -32,13 +32,19 @@ story. Broadletter does the reading so I don't have to.
 ```
 Gmail label "Newsletter"
   → MIME to clean text (hidden text, scripts and URLs stripped)
-  → Gemma 4 extracts each story as JSON and flags sponsored ones
+  → Gemma 4 extracts each story as JSON: topic, sponsored?, headline-only?
   → sponsored stories dropped
   → EmbeddingGemma + cosine clustering merges duplicate stories
+  → code builds the rundown: topic sections, then a quick-hits round
   → Gemma 4 writes the two-host script
   → broadcast inserted into your inbox (not sent)
   → originals labeled "Broadletter/Digested" and moved to trash
 ```
+
+Only the top `max_segments` stories (default 12) get a full segment: those covered by
+several newsletters first, then each newsletter takes a turn. The rest, plus headline-only
+stories, go to a quick-hits round. The email ends with an **"In this edition"** index of
+every story by section, so nothing is lost even if the hosts rush.
 
 Newsletters from senders you mark as personal skip the AI entirely. They are listed in a
 **"Letters to the Editor"** section instead.
@@ -108,7 +114,8 @@ uv run broadletter run --apply     # insert the broadcast and trash the digested
 ```
 
 Settings live in `config.toml`: label names, personal senders, maximum newsletter age,
-models, GPU layers (`num_gpu`), dedupe threshold, host names and output language.
+models, GPU layers (`num_gpu`), dedupe threshold, full segments (`max_segments`), host
+names and output language.
 
 ## Development
 
