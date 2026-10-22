@@ -4,7 +4,7 @@ from broadletter.models import NewsItem
 
 def _item(title: str, summary: str, source: str, brief: bool = False) -> NewsItem:
     return NewsItem(title=title, summary=summary, topic="Developers", brief=brief,
-                    sponsored=False, source_id=source, source_name=source)
+                    sponsored=False, job_posting=False, source_id=source, source_name=source)
 
 
 def test_cosine():

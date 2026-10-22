@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import Counter
 from datetime import datetime
 from email.message import EmailMessage
@@ -17,9 +18,15 @@ from broadletter.models import (
     ExtractionOutput,
     Newsletter,
     NewsItem,
+    RelatedGroup,
+    RelatedOutput,
     ScriptOutput,
     Story,
 )
+
+log = logging.getLogger(__name__)
+
+MAX_RELATED = 3
 
 
 def extract_items(llm: LocalLLM, nl: Newsletter, language: str) -> list[NewsItem]:
@@ -32,6 +39,44 @@ def extract_items(llm: LocalLLM, nl: Newsletter, language: str) -> list[NewsItem
         NewsItem(**item.model_dump(), source_id=nl.message_id, source_name=nl.sender)
         for item in out.items
     ]
+
+
+def group_related(llm: LocalLLM, stories: list[Story]) -> list[Story]:
+    """Asks the model which stories belong together; the model only returns story numbers."""
+    if len(stories) < 2:
+        return stories
+    listing = "\n".join(f"{i}. {s.title}: {s.summary}" for i, s in enumerate(stories))
+    out = llm.structured(
+        prompts.RELATED_SYSTEM, prompts.RELATED_USER.format(stories=listing), RelatedOutput
+    )
+    return apply_groups(stories, out.groups)
+
+
+def apply_groups(stories: list[Story], groups: list[RelatedGroup]) -> list[Story]:
+    """Nests each group under its lead story. Invalid or reused numbers are ignored."""
+    used: set[int] = set()
+    members_of: dict[int, list[int]] = {}
+    for group in groups:
+        ids = [i for i in dict.fromkeys(group.ids) if 0 <= i < len(stories) and i not in used]
+        ids = ids[:MAX_RELATED]
+        if len(ids) < 2:
+            continue
+        # The lead has real details and the most sources, so the segment has substance.
+        lead = min(ids, key=lambda i: (stories[i].brief, -len(stories[i].sources), i))
+        members_of[lead] = [i for i in ids if i != lead]
+        used.update(ids)
+    result = []
+    for i, story in enumerate(stories):
+        if i in members_of:
+            related = [stories[j] for j in members_of[i]]
+            result.append(story.model_copy(update={
+                "related": related,
+                "sources": sorted({src for s in [story, *related] for src in s.sources}),
+                "brief": all(s.brief for s in [story, *related]),
+            }))
+        elif i not in used:
+            result.append(story)
+    return result
 
 
 def by_topic(stories: list[Story]) -> list[tuple[str, list[Story]]]:
@@ -61,8 +106,10 @@ def rundown(stories: list[Story], max_segments: int) -> str:
     blocks = []
     for name, members in sections:
         if members:
-            lines = [f"- {s.title}: {s.summary} (sources: {', '.join(s.sources)})"
-                     for s in members]
+            lines = []
+            for s in members:
+                lines.append(f"- {s.title}: {s.summary} (sources: {', '.join(s.sources)})")
+                lines += [f"  - related: {r.title}: {r.summary}" for r in s.related]
             blocks.append("\n".join([f"## {name}", *lines]))
     return "\n\n".join(blocks)
 
@@ -96,7 +143,9 @@ def render_email(digest: Digest, to_addr: str) -> EmailMessage:
         plain += ["", "IN THIS EDITION"]
         for topic, members in by_topic(digest.stories):
             plain += ["", topic.upper()]
-            plain += [f"- {s.title} ({', '.join(s.sources)})" for s in members]
+            for s in members:
+                plain.append(f"- {s.title} ({', '.join(s.sources)})")
+                plain += [f"  - {r.title}" for r in s.related]
     if digest.letters:
         plain += ["", "LETTERS TO THE EDITOR", ""]
         plain += [f"- {nl.sender}: {nl.subject}" for nl in digest.letters]
@@ -109,8 +158,10 @@ def render_email(digest: Digest, to_addr: str) -> EmailMessage:
         html.append("<h2>📰 In this edition</h2>")
         for topic, members in by_topic(digest.stories):
             html.append(f"<h3>{escape(topic)}</h3><ul>")
-            html += [f"<li>{escape(s.title)} <em>({escape(', '.join(s.sources))})</em></li>"
-                     for s in members]
+            for s in members:
+                related = "".join(f"<li>{escape(r.title)}</li>" for r in s.related)
+                html.append(f"<li>{escape(s.title)} <em>({escape(', '.join(s.sources))})</em>"
+                            + (f"<ul>{related}</ul>" if related else "") + "</li>")
             html.append("</ul>")
     if digest.letters:
         html.append("<h2>✉️ Letters to the Editor</h2><ul>")

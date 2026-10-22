@@ -1,5 +1,5 @@
-from broadletter.digest import render_email, rundown
-from broadletter.models import Digest, ScriptLine, Story
+from broadletter.digest import apply_groups, render_email, rundown
+from broadletter.models import Digest, RelatedGroup, ScriptLine, Story
 
 
 def _story(title: str, topic: str, brief: bool = False, sources: int = 1) -> Story:
@@ -53,3 +53,33 @@ def test_rundown_gives_each_newsletter_a_turn():
                for src in ("TLDR", "Bytes") for n in range(3)]
     featured = rundown(stories, max_segments=2).split("## Quick hits")[0]
     assert "TLDR 0" in featured and "Bytes 0" in featured
+
+
+def test_apply_groups_nests_related_stories_under_a_detailed_lead():
+    stories = [_story("Internet security woes", "Security", brief=True),
+               _story("New model", "AI"),
+               _story("PHP flaws need patches", "Security", sources=2)]
+    grouped = apply_groups(stories, [RelatedGroup(ids=[0, 2], link="security alerts")])
+    assert [s.title for s in grouped] == ["New model", "PHP flaws need patches"]
+    lead = grouped[1]
+    assert [r.title for r in lead.related] == ["Internet security woes"]
+    assert lead.sources == ["NL0", "NL1"] and not lead.brief
+
+
+def test_apply_groups_ignores_invalid_reused_and_single_ids():
+    stories = [_story(f"S{i}", "AI") for i in range(4)]
+    groups = [RelatedGroup(ids=[0, 1], link="a"), RelatedGroup(ids=[1, 9], link="reused + bad"),
+              RelatedGroup(ids=[2, 2], link="duplicate"), RelatedGroup(ids=[3, 2, 0], link="c")]
+    grouped = apply_groups(stories, groups)
+    assert [(s.title, [r.title for r in s.related]) for s in grouped] == [
+        ("S0", ["S1"]), ("S2", ["S3"])]
+
+
+def test_related_stories_appear_in_rundown_and_email():
+    lead = _story("PHP flaws", "Security").model_copy(
+        update={"related": [_story("Internet security woes", "Security")]})
+    assert ("- PHP flaws: ... (sources: NL0)\n  - related: Internet security woes: ..."
+            in rundown([lead], 10))
+    digest = Digest(title="B", date="d", lines=[], stories=[lead])
+    plain = render_email(digest, "me@example.com").get_body(("plain",)).get_content()
+    assert "- PHP flaws (NL0)\n  - Internet security woes" in plain

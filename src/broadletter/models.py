@@ -25,10 +25,11 @@ class Newsletter(BaseModel):
 
 class ExtractedItem(BaseModel):
     title: str = Field(description="Short headline for the story")
-    summary: str = Field(description="1-3 sentence summary using only facts from the text")
+    summary: str = Field(description="2-4 sentence summary using only facts from the text")
     topic: Topic = Field(description="The section of the broadcast this story belongs to")
     brief: bool = Field(description="true if the text gives only a headline or link, no details")
     sponsored: bool = Field(description="true if it is an ad, sponsorship or promoted content")
+    job_posting: bool = Field(description="true if it is a job ad or a 'we are hiring' notice")
 
 
 class ExtractionOutput(BaseModel):
@@ -50,6 +51,17 @@ class Story(BaseModel):
     sources: list[str]
     topic: Topic = "World"
     brief: bool = False
+    # Closely related stories told in the same segment (not repeats: those are merged).
+    related: list[Story] = Field(default_factory=list)
+
+
+class RelatedGroup(BaseModel):
+    ids: list[int] = Field(description="Numbers of 2 or 3 closely related stories")
+    link: str = Field(description="A few words on what connects them")
+
+
+class RelatedOutput(BaseModel):
+    groups: list[RelatedGroup]
 
 
 class ScriptLine(BaseModel):

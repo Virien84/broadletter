@@ -17,7 +17,7 @@ from pathlib import Path
 
 from broadletter.config import DATA_DIR, Config
 from broadletter.dedupe import embedding_text, to_stories
-from broadletter.digest import extract_items, render_email, write_script
+from broadletter.digest import extract_items, group_related, render_email, write_script
 from broadletter.extract import to_newsletter
 from broadletter.gmail_client import Gmail, age_queries, authorize, iter_messages
 from broadletter.llm import LocalLLM
@@ -68,14 +68,21 @@ def _broadcast(cfg: Config, llm: LocalLLM, gmail: Gmail, ids: list[str], apply: 
             log.exception("Could not process '%s' (%s)", nl.subject, nl.sender)
             continue
         included.append(nl.message_id)
-        kept = [it for it in extracted if not it.sponsored]
-        log.info("%s: %d stories (%d sponsored dropped)",
-                 nl.sender, len(kept), len(extracted) - len(kept))
+        kept = [it for it in extracted if not it.sponsored and not it.job_posting]
+        log.info("%s: %d stories (%d sponsored, %d job postings dropped)", nl.sender, len(kept),
+                 sum(it.sponsored for it in extracted),
+                 sum(it.job_posting and not it.sponsored for it in extracted))
         items += kept
 
     vectors = llm.embed([embedding_text(it) for it in items])
     stories = to_stories(items, vectors, cfg.digest.dedupe_threshold)
     log.info("%d items -> %d stories after deduplication", len(items), len(stories))
+    try:
+        stories = group_related(llm, stories)
+    except Exception:
+        # Grouping is a nicety: without it the broadcast is still complete.
+        log.exception("Could not group related stories")
+    log.info("%d segments after grouping related stories", len(stories))
 
     script = write_script(llm, stories, cfg.digest) if stories else None
     digest = Digest(
