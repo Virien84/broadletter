@@ -29,6 +29,8 @@ max_chars = 12000
 [digest]
 # Cosine similarity above which two news items are considered the same story.
 dedupe_threshold = 0.70
+# Stories that get a full segment; the rest go to a quick-hits round at the end.
+max_segments = 12
 hosts = ["Maya", "Leo"]
 title = "Broadletter"
 language = "English"

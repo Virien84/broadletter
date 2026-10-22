@@ -40,6 +40,8 @@ class OllamaConfig:
 @dataclass(frozen=True)
 class DigestConfig:
     dedupe_threshold: float = 0.70
+    # Stories that get a full segment; the rest go to the quick-hits round.
+    max_segments: int = 12
     hosts: list[str] = field(default_factory=lambda: ["Maya", "Leo"])
     title: str = "Broadletter"
     language: str = "English"

@@ -45,7 +45,7 @@ Structure:
   sentences; the other often answers with a short reaction, question or quip. Reactions
   add feelings or curiosity, never new facts.
 - If there is a "## Quick hits" section, run through it fast near the end, as a lightning
-  round. You may cover two or three of them in a single line.
+  round. Mention every quick hit, two or three per line, one short clause each.
 - Close with a relaxed, lazy sign-off from both hosts.
 
 Sources:
