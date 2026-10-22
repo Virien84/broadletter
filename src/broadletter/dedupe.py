@@ -37,6 +37,9 @@ def to_stories(items: list[NewsItem], vectors: list[list[float]], threshold: flo
                 title=lead.title,
                 summary=lead.summary,
                 sources=sorted({it.source_name for it in members}),
+                topic=lead.topic,
+                # One newsletter with real details is enough to give it a full segment.
+                brief=all(it.brief for it in members),
             )
         )
     return stories

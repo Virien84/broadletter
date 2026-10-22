@@ -11,6 +11,7 @@ from broadletter import prompts
 from broadletter.config import DigestConfig
 from broadletter.llm import LocalLLM
 from broadletter.models import (
+    TOPICS,
     Digest,
     ExtractionOutput,
     Newsletter,
@@ -32,16 +33,28 @@ def extract_items(llm: LocalLLM, nl: Newsletter, language: str) -> list[NewsItem
     ]
 
 
+def rundown(stories: list[Story]) -> str:
+    """Stories grouped into sections in broadcast order; headline-only ones go last as quick hits."""
+    sections: list[tuple[str, list[Story]]] = [
+        (topic, [s for s in stories if s.topic == topic and not s.brief]) for topic in TOPICS
+    ]
+    sections.append(("Quick hits", [s for s in stories if s.brief]))
+    blocks = []
+    for name, members in sections:
+        if members:
+            lines = [f"- {s.title}: {s.summary} (sources: {', '.join(s.sources)})"
+                     for s in members]
+            blocks.append("\n".join([f"## {name}", *lines]))
+    return "\n\n".join(blocks)
+
+
 def write_script(llm: LocalLLM, stories: list[Story], cfg: DigestConfig) -> ScriptOutput:
     host_a, host_b = cfg.hosts
-    listing = "\n".join(
-        f"- {s.title}: {s.summary} (sources: {', '.join(s.sources)})" for s in stories
-    )
     script = llm.structured(
         prompts.SCRIPT_SYSTEM.format(
             title=cfg.title, host_a=host_a, host_b=host_b, language=cfg.language
         ),
-        prompts.SCRIPT_USER.format(stories=listing),
+        prompts.SCRIPT_USER.format(stories=rundown(stories)),
         ScriptOutput,
     )
     # The model doesn't decide who exists: any unknown name is reassigned by alternation.
