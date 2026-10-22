@@ -1,4 +1,4 @@
-from broadletter.dedupe import cluster, cosine, to_stories
+from broadletter.dedupe import cluster, cosine, embedding_text, to_stories
 from broadletter.models import NewsItem
 
 
@@ -36,3 +36,8 @@ def test_story_is_brief_only_if_every_source_is():
              _item("Python 3.15 out", "Lazy imports and a faster JIT", "B")]
     assert not to_stories(items, [[1, 0], [1, 0]], 0.9)[0].brief
     assert to_stories(items[:1], [[1, 0]], 0.9)[0].brief
+
+
+def test_embedding_text_uses_task_prefix_and_title_only():
+    text = embedding_text(_item("Python 3.15 out", "Lazy imports and a faster JIT", "B"))
+    assert text == "task: sentence similarity | query: Python 3.15 out"

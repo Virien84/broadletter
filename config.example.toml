@@ -28,7 +28,7 @@ max_chars = 12000
 
 [digest]
 # Cosine similarity above which two news items are considered the same story.
-dedupe_threshold = 0.82
+dedupe_threshold = 0.70
 hosts = ["Maya", "Leo"]
 title = "Broadletter"
 language = "English"

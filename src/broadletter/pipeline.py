@@ -16,7 +16,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from broadletter.config import DATA_DIR, Config
-from broadletter.dedupe import to_stories
+from broadletter.dedupe import embedding_text, to_stories
 from broadletter.digest import extract_items, render_email, write_script
 from broadletter.extract import to_newsletter
 from broadletter.gmail_client import Gmail, age_queries, authorize, iter_messages
@@ -73,7 +73,7 @@ def _broadcast(cfg: Config, llm: LocalLLM, gmail: Gmail, ids: list[str], apply: 
                  nl.sender, len(kept), len(extracted) - len(kept))
         items += kept
 
-    vectors = llm.embed([f"{it.title}. {it.summary}" for it in items])
+    vectors = llm.embed([embedding_text(it) for it in items])
     stories = to_stories(items, vectors, cfg.digest.dedupe_threshold)
     log.info("%d items -> %d stories after deduplication", len(items), len(stories))
 

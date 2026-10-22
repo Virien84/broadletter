@@ -39,7 +39,7 @@ class OllamaConfig:
 
 @dataclass(frozen=True)
 class DigestConfig:
-    dedupe_threshold: float = 0.82
+    dedupe_threshold: float = 0.70
     hosts: list[str] = field(default_factory=lambda: ["Maya", "Leo"])
     title: str = "Broadletter"
     language: str = "English"

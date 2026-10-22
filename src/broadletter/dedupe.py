@@ -6,6 +6,14 @@ import math
 
 from broadletter.models import NewsItem, Story
 
+# EmbeddingGemma is trained with task prefixes. Comparing titles alone separates repeats from
+# merely related stories far better than title + summary: summaries share topic vocabulary.
+_EMBED_PREFIX = "task: sentence similarity | query: "
+
+
+def embedding_text(item: NewsItem) -> str:
+    return _EMBED_PREFIX + item.title
+
 
 def cosine(a: list[float], b: list[float]) -> float:
     dot = sum(x * y for x, y in zip(a, b, strict=True))
