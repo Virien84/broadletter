@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import Counter
 from datetime import datetime
 from email.message import EmailMessage
 from email.utils import format_datetime
@@ -43,11 +44,18 @@ def rundown(stories: list[Story], max_segments: int) -> str:
     """Stories grouped into sections in broadcast order, ending with a quick-hits round.
 
     A small model asked to cover thirty stories quietly skips a third of them, so only the
-    top `max_segments` get a full segment: stories several newsletters covered come first.
+    top `max_segments` get a full segment: stories several newsletters covered come first,
+    then newsletters take turns so the last one read doesn't lose all its stories.
     Headline-only stories and the overflow go to quick hits.
     """
     candidates = [i for i, s in enumerate(stories) if not s.brief]
-    featured = set(sorted(candidates, key=lambda i: -len(stories[i].sources))[:max_segments])
+    seen: Counter[str] = Counter()
+    turn = {}
+    for i in candidates:
+        turn[i] = seen[stories[i].sources[0]]
+        seen[stories[i].sources[0]] += 1
+    ranked = sorted(candidates, key=lambda i: (-len(stories[i].sources), turn[i]))
+    featured = set(ranked[:max_segments])
     sections = by_topic([s for i, s in enumerate(stories) if i in featured])
     sections.append(("Quick hits", [s for i, s in enumerate(stories) if i not in featured]))
     blocks = []

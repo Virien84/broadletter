@@ -46,3 +46,10 @@ def test_email_lists_every_story_by_section():
     html = msg.get_body(preferencelist=("html",)).get_content()
     assert plain.index("IN THIS EDITION") < plain.index("AI\n- New model") < plain.index("SECURITY")
     assert "Hi &lt;all&gt;" in html and "<h3>Security</h3>" in html
+
+
+def test_rundown_gives_each_newsletter_a_turn():
+    stories = [Story(title=f"{src} {n}", summary="...", sources=[src], topic="AI")
+               for src in ("TLDR", "Bytes") for n in range(3)]
+    featured = rundown(stories, max_segments=2).split("## Quick hits")[0]
+    assert "TLDR 0" in featured and "Bytes 0" in featured
