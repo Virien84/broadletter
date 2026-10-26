@@ -25,7 +25,7 @@ class Newsletter(BaseModel):
 
 class ExtractedItem(BaseModel):
     title: str = Field(description="Short headline for the story")
-    summary: str = Field(description="2-4 sentence summary using only facts from the text")
+    summary: str = Field(description="1-3 sentence summary using only facts from the text")
     topic: Topic = Field(description="The section of the broadcast this story belongs to")
     brief: bool = Field(description="true if the text gives only a headline or link, no details")
     sponsored: bool = Field(description="true if it is an ad, sponsorship or promoted content")

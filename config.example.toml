@@ -23,6 +23,8 @@ chat_model = "gemma4:e4b-it-qat"
 embed_model = "embeddinggemma:300m"
 # Maximum characters of each newsletter passed to the model.
 max_chars = 12000
+# Context window in tokens (prompt + answer). 6144 leaves room for a long newsletter.
+num_ctx = 6144
 # Layers offloaded to the GPU: leave unset to let Ollama decide; 0 = CPU only.
 # num_gpu = 0
 

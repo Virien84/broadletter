@@ -39,9 +39,10 @@ class LocalLLM:
         return schema.model_validate_json(resp.message.content)
 
     def _options(self, **opts: float) -> dict[str, float | int]:
+        options: dict[str, float | int] = {**opts, "num_ctx": self.cfg.num_ctx}
         if self.cfg.num_gpu is not None:
-            return {**opts, "num_gpu": self.cfg.num_gpu}
-        return dict(opts)
+            options["num_gpu"] = self.cfg.num_gpu
+        return options
 
     def embed(self, texts: list[str]) -> list[list[float]]:
         if not texts:
