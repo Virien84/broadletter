@@ -4,7 +4,7 @@
 
 Broadletter reads the newsletters piling up in your Gmail and turns them into a single,
 lighthearted two-host news broadcast (with anchors Maya and Leo). It merges stories that
-several newsletters repeat and drops sponsored content. The broadcast lands in your inbox
+several newsletters repeat and drops sponsored content and job ads. The broadcast lands in your inbox
 and the originals go to the trash. Everything runs on your own machine with open-weight
 models.
 
@@ -32,8 +32,8 @@ story. Broadletter does the reading so I don't have to.
 ```
 Gmail label "Newsletter"
   → MIME to clean text (hidden text, scripts and URLs stripped)
-  → Gemma 4 extracts each story as JSON: topic, sponsored?, headline-only?
-  → sponsored stories dropped
+  → Gemma 4 extracts each story as JSON: topic, sponsored?, job ad?, headline-only?
+  → sponsored stories and job ads dropped
   → EmbeddingGemma + cosine clustering merges duplicate stories
   → code builds the rundown: topic sections, then a quick-hits round
   → Gemma 4 writes the two-host script

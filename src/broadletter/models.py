@@ -29,6 +29,7 @@ class ExtractedItem(BaseModel):
     topic: Topic = Field(description="The section of the broadcast this story belongs to")
     brief: bool = Field(description="true if the text gives only a headline or link, no details")
     sponsored: bool = Field(description="true if it is an ad, sponsorship or promoted content")
+    job_posting: bool = Field(description="true if it is a job ad or a 'we are hiring' notice")
 
 
 class ExtractionOutput(BaseModel):

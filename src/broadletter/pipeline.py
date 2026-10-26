@@ -68,9 +68,10 @@ def _broadcast(cfg: Config, llm: LocalLLM, gmail: Gmail, ids: list[str], apply: 
             log.exception("Could not process '%s' (%s)", nl.subject, nl.sender)
             continue
         included.append(nl.message_id)
-        kept = [it for it in extracted if not it.sponsored]
-        log.info("%s: %d stories (%d sponsored dropped)",
-                 nl.sender, len(kept), len(extracted) - len(kept))
+        kept = [it for it in extracted if not it.sponsored and not it.job_posting]
+        log.info("%s: %d stories (%d sponsored, %d job postings dropped)", nl.sender, len(kept),
+                 sum(it.sponsored for it in extracted),
+                 sum(it.job_posting and not it.sponsored for it in extracted))
         items += kept
 
     vectors = llm.embed([embedding_text(it) for it in items])

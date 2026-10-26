@@ -14,6 +14,9 @@ For each news story or article in the newsletter return:
 - brief: true if the newsletter only gives a headline or a link, with no real details to
   summarize; false if the text explains what happened.
 - sponsored: true if it is an ad, sponsorship, offer, "partner" or promoted content.
+- job_posting: true if it is a job ad or a "we are hiring" / "X is hiring for Y" notice,
+  including the newsletter's own openings. News about hiring trends or layoffs is not a
+  job posting.
 
 Ignore greetings, footers, unsubscribe notices, social links and "refer a friend" sections.
 If there are no news stories, return an empty list."""

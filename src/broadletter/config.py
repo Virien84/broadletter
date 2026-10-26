@@ -33,6 +33,9 @@ class OllamaConfig:
     chat_model: str = "gemma4:e4b-it-qat"
     embed_model: str = "embeddinggemma:300m"
     max_chars: int = 12000
+    # Context window in tokens. Ollama's default (4096) barely fits a long newsletter plus
+    # its extracted stories; when it overflows, the JSON comes back cut off.
+    num_ctx: int = 6144
     # Layers offloaded to the GPU. None = let Ollama decide; 0 = CPU only.
     num_gpu: int | None = None
 
